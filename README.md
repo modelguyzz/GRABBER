@@ -34,4 +34,4 @@ grabs saved passwords from basically every browser on windows and sends them to 
 put in webhook and convert it to .exe lol..........:)
 
 
-made this for fun and to learn python, dont use it on people without permission..hehehhe
+made this for fun and ethical use or something like that, dont use it on people without permission..hehehhe
