@@ -1,4 +1,4 @@
-# BrowserGrabber
+## FUD (FULLY UNDETECTED)
 
 grabs saved passwords from basically every browser on windows and sends them to a discord webhook
 
